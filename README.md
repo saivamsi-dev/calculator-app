@@ -46,21 +46,33 @@ http://localhost:3000
 ## ⌨️ Keyboard Shortcuts
 
 | Key             | Action       |
+
 |---------------- + -------------|
+
 | `0-9`           | Number input |
+
 | `+` `-` `*` `/` | Operations   |
+
 | `Enter` or `=`  | Calculate    |
+
 | `Escape`        | Clear all    |
+
 | `Backspace`     | Delete digit |
+
 
 
 ## 📁 Project Structure
 
 calculator-app/
+
 ├── package.json # Dependencies
+
 ├── server.js # Express server
+
 ├── public/
+
 │ └── index.html # Calculator app
+
 └── README.md # Documentation
 
 
