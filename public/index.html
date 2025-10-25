@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Calculator</title>
+    <style>
+        :root {
+            --color-primary: rgba(33, 128, 141, 1);
+            --color-primary-hover: rgba(29, 116, 128, 1);
+            --color-surface: rgba(255, 255, 253, 1);
+            --color-text: rgba(19, 52, 59, 1);
+            --color-text-secondary: rgba(98, 108, 113, 1);
+            --color-border: rgba(94, 82, 64, 0.2);
+            --color-secondary: rgba(94, 82, 64, 0.12);
+            --color-secondary-hover: rgba(94, 82, 64, 0.2);
+            --color-error: rgba(192, 21, 47, 1);
+            --color-background: rgba(252, 252, 249, 1);
+            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        [data-theme="dark"] {
+            --color-primary: rgba(50, 184, 198, 1);
+            --color-primary-hover: rgba(45, 166, 178, 1);
+            --color-surface: rgba(38, 40, 40, 1);
+            --color-text: rgba(245, 245, 245, 1);
+            --color-text-secondary: rgba(167, 169, 169, 0.7);
+            --color-border: rgba(119, 124, 124, 0.3);
+            --color-secondary: rgba(119, 124, 124, 0.15);
+            --color-secondary-hover: rgba(119, 124, 124, 0.25);
+            --color-error: rgba(255, 84, 89, 1);
+            --color-background: rgba(31, 33, 33, 1);
+            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        [data-theme="light"] {
+            --color-primary: rgba(33, 128, 141, 1);
+            --color-primary-hover: rgba(29, 116, 128, 1);
+            --color-surface: rgba(255, 255, 253, 1);
+            --color-text: rgba(19, 52, 59, 1);
+            --color-text-secondary: rgba(98, 108, 113, 1);
+            --color-border: rgba(94, 82, 64, 0.2);
+            --color-secondary: rgba(94, 82, 64, 0.12);
+            --color-secondary-hover: rgba(94, 82, 64, 0.2);
+            --color-error: rgba(192, 21, 47, 1);
+            --color-background: rgba(252, 252, 249, 1);
+            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-primary: rgba(50, 184, 198, 1);
+                --color-primary-hover: rgba(45, 166, 178, 1);
+                --color-surface: rgba(38, 40, 40, 1);
+                --color-text: rgba(245, 245, 245, 1);
+                --color-text-secondary: rgba(167, 169, 169, 0.7);
+                --color-border: rgba(119, 124, 124, 0.3);
+                --color-secondary: rgba(119, 124, 124, 0.15);
+                --color-secondary-hover: rgba(119, 124, 124, 0.25);
+                --color-error: rgba(255, 84, 89, 1);
+                --color-background: rgba(31, 33, 33, 1);
+                --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.3);
+                --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.4);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--color-primary) 0%, rgba(50, 184, 198, 0.6) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--color-text);
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: moveBackground 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes moveBackground {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(50px, 50px);
+            }
+        }
+
+        [data-theme="dark"] body {
+            background: linear-gradient(135deg, rgba(31, 33, 33, 1) 0%, rgba(19, 52, 59, 1) 100%);
+        }
+
+        [data-theme="light"] body {
+            background: linear-gradient(135deg, rgba(33, 128, 141, 1) 0%, rgba(50, 184, 198, 0.6) 100%);
+        }
+
+        .calculator-container {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(30px) saturate(150%);
+            -webkit-backdrop-filter: blur(30px) saturate(150%);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 
+                        0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            width: 100%;
+            max-width: 400px;
+            animation: slideIn 0.5s ease-out;
+            position: relative;
+            z-index: 1;
+        }
+
+        [data-theme="dark"] .calculator-container {
+            background: rgba(38, 40, 40, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 
+                        0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+        }
+
+        [data-theme="light"] .calculator-container {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .calculator-header {
+            margin-bottom: 24px;
+        }
+
+        .calculator-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .calculator-header-content h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: 4px;
+            letter-spacing: -0.02em;
+        }
+
+        .calculator-header-content p {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+        }
+
+        .theme-toggle {
+            background: var(--color-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 20px;
+        }
+
+        .theme-toggle:hover {
+            background: var(--color-secondary-hover);
+            transform: rotate(20deg) scale(1.1);
+        }
+
+        .theme-toggle:active {
+            transform: rotate(20deg) scale(0.95);
+        }
+
+        .display {
+            background: var(--color-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 16px;
+            padding: 24px 20px;
+            margin-bottom: 24px;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .display-previous {
+            font-size: 16px;
+            color: var(--color-text-secondary);
+            min-height: 24px;
+            word-break: break-all;
+            text-align: right;
+        }
+
+        .display-current {
+            font-size: 42px;
+            font-weight: 600;
+            color: var(--color-text);
+            text-align: right;
+            word-break: break-all;
+            line-height: 1.2;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .btn {
+            border: none;
+            background: var(--color-secondary);
+            color: var(--color-text);
+            font-size: 20px;
+            font-weight: 500;
+            padding: 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid var(--color-border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            background: var(--color-secondary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.4s ease, height 0.4s ease;
+        }
+
+        .btn:active::before {
+            width: 200px;
+            height: 200px;
+        }
+
+        .btn-clear {
+            background: var(--color-error);
+            color: white;
+            grid-column: span 2;
+        }
+
+        .btn-clear:hover {
+            background: rgba(192, 21, 47, 0.9);
+        }
+
+        .btn-equals {
+            background: var(--color-primary);
+            color: white;
+            grid-column: span 2;
+            font-weight: 600;
+        }
+
+        .btn-equals:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .btn-operator {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .btn-operator:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .btn-zero {
+            grid-column: span 2;
+        }
+
+        .footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--color-text-secondary);
+        }
+
+        @media (max-width: 480px) {
+            .calculator-container {
+                padding: 24px;
+                border-radius: 20px;
+            }
+
+            .display-current {
+                font-size: 36px;
+            }
+
+            .btn {
+                padding: 20px;
+                font-size: 18px;
+            }
+
+            .buttons {
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .calculator-container {
+                padding: 20px;
+            }
+
+            .display-current {
+                font-size: 32px;
+            }
+
+            .btn {
+                padding: 18px;
+                font-size: 16px;
+            }
+
+            .buttons {
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <div class="calculator-header">
+            <div class="calculator-header-content">
+                <h1>Calculator</h1>
+                <p>Modern & Responsive</p>
+            </div>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                <span id="themeIcon">🌙</span>
+            </button>
+        </div>
+        
+        <div class="display">
+            <div class="display-previous" id="previousDisplay"></div>
+            <div class="display-current" id="currentDisplay">0</div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn btn-clear" onclick="clearAll()">AC</button>
+            <button class="btn" onclick="deleteDigit()">⌫</button>
+            <button class="btn btn-operator" onclick="appendOperator('÷')">÷</button>
+            
+            <button class="btn" onclick="appendNumber('7')">7</button>
+            <button class="btn" onclick="appendNumber('8')">8</button>
+            <button class="btn" onclick="appendNumber('9')">9</button>
+            <button class="btn btn-operator" onclick="appendOperator('×')">×</button>
+            
+            <button class="btn" onclick="appendNumber('4')">4</button>
+            <button class="btn" onclick="appendNumber('5')">5</button>
+            <button class="btn" onclick="appendNumber('6')">6</button>
+            <button class="btn btn-operator" onclick="appendOperator('-')">-</button>
+            
+            <button class="btn" onclick="appendNumber('1')">1</button>
+            <button class="btn" onclick="appendNumber('2')">2</button>
+            <button class="btn" onclick="appendNumber('3')">3</button>
+            <button class="btn btn-operator" onclick="appendOperator('+')">+</button>
+            
+            <button class="btn btn-zero" onclick="appendNumber('0')">0</button>
+            <button class="btn" onclick="appendNumber('.')">.</button>
+            <button class="btn btn-equals" onclick="calculate()">=</button>
+        </div>
+
+        <div class="footer">
+            Made with ❤️ | Press keyboard for quick input
+        </div>
+    </div>
+
+    <script>
+        let currentDisplay = document.getElementById('currentDisplay');
+        let previousDisplay = document.getElementById('previousDisplay');
+        
+        let currentValue = '0';
+        let previousValue = '';
+        let operation = null;
+        let shouldResetDisplay = false;
+
+        function updateDisplay() {
+            currentDisplay.textContent = currentValue || '0';
+            if (previousValue && operation) {
+                previousDisplay.textContent = `${previousValue} ${operation}`;
+            } else {
+                previousDisplay.textContent = '';
+            }
+        }
+
+        function appendNumber(number) {
+            if (shouldResetDisplay) {
+                currentValue = '';
+                shouldResetDisplay = false;
+            }
+            
+            if (number === '.' && currentValue.includes('.')) return;
+            
+            if (currentValue === '0' && number !== '.') {
+                currentValue = number;
+            } else {
+                currentValue += number;
+            }
+            
+            updateDisplay();
+        }
+
+        function appendOperator(op) {
+            if (operation && !shouldResetDisplay) {
+                calculate();
+            }
+            
+            previousValue = currentValue;
+            operation = op;
+            shouldResetDisplay = true;
+            updateDisplay();
+        }
+
+        function calculate() {
+            if (!operation || !previousValue) return;
+            
+            let prev = parseFloat(previousValue);
+            let current = parseFloat(currentValue);
+            let result;
+
+            switch(operation) {
+                case '+':
+                    result = prev + current;
+                    break;
+                case '-':
+                    result = prev - current;
+                    break;
+                case '×':
+                    result = prev * current;
+                    break;
+                case '÷':
+                    if (current === 0) {
+                        currentValue = 'Error';
+                        previousValue = '';
+                        operation = null;
+                        updateDisplay();
+                        setTimeout(() => {
+                            clearAll();
+                        }, 1500);
+                        return;
+                    }
+                    result = prev / current;
+                    break;
+                default:
+                    return;
+            }
+
+            // Round to avoid floating point errors
+            result = Math.round(result * 100000000) / 100000000;
+            
+            currentValue = result.toString();
+            previousValue = '';
+            operation = null;
+            shouldResetDisplay = true;
+            updateDisplay();
+        }
+
+        function clearAll() {
+            currentValue = '0';
+            previousValue = '';
+            operation = null;
+            shouldResetDisplay = false;
+            updateDisplay();
+        }
+
+        function deleteDigit() {
+            if (currentValue.length === 1) {
+                currentValue = '0';
+            } else {
+                currentValue = currentValue.slice(0, -1);
+            }
+            updateDisplay();
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', function(event) {
+            const key = event.key;
+            
+            if (key >= '0' && key <= '9') {
+                appendNumber(key);
+            } else if (key === '.') {
+                appendNumber('.');
+            } else if (key === '+') {
+                appendOperator('+');
+            } else if (key === '-') {
+                appendOperator('-');
+            } else if (key === '*') {
+                appendOperator('×');
+            } else if (key === '/') {
+                event.preventDefault();
+                appendOperator('÷');
+            } else if (key === 'Enter' || key === '=') {
+                event.preventDefault();
+                calculate();
+            } else if (key === 'Escape') {
+                clearAll();
+            } else if (key === 'Backspace') {
+                event.preventDefault();
+                deleteDigit();
+            }
+        });
+
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const html = document.documentElement;
+
+        // Check for saved theme preference or default to system preference
+        const savedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const currentTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+
+        // Apply initial theme
+        html.setAttribute('data-theme', currentTheme);
+        themeIcon.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+
+        // Toggle theme
+        themeToggle.addEventListener('click', function() {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        });
+
+        // Initialize display
+        updateDisplay();
+    </script>
+</body>
+</html>
+
